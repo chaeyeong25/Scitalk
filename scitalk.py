@@ -142,12 +142,13 @@ def create_pdf(level, subject, topic, question, student_answer, ai_feedback, stu
     pdf = FPDF()
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
+    
+    # 한글 폰트 경로 설정
+    font_path = Path.cwd()
 
     st.write("폰트 경로:", font_path / "NanumGothic.ttf")
     st.write("폰트 파일 존재 여부:", (font_path / "NanumGothic.ttf").exists())
     
-    # 한글 폰트 경로 설정
-    font_path = Path.cwd()
     pdf.add_font("Nanum", "", str(font_path / "NanumGothic.ttf"), uni=True)
     pdf.add_font("Nanum", "B", str(font_path / "NanumGothicBold.ttf"), uni=True)
 
