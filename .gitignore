@@ -1,0 +1,8 @@
+# 가상환경 무시
+venv/
+
+# Streamlit 캐시 무시
+.streamlit/
+
+# 폰트 캐시 무시
+*.pkl
