@@ -6,6 +6,8 @@ from pathlib import Path
 
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
+st.write("폰트 경로:", font_path / "NanumGothic.ttf")
+st.write("폰트 파일 존재 여부:", (font_path / "NanumGothic.ttf").exists())
 
 # --- 학년 및 과목별 주요 개념 ---
 curriculum_keywords = {
