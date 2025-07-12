@@ -44,13 +44,25 @@ if "ai_feedback" not in st.session_state:
     st.session_state.ai_feedback = ""
 
 # --- AI 질문 생성 ---
-def generate_question_and_intent(topic, grade_level):
+def generate_question_and_intent(topic, grade_level, interest_area):
     keywords = curriculum_keywords.get(grade_level + " 과학" if grade_level.startswith("중") else grade_level, [])
     keyword_hint = f"다음 개념 중 하나 이상을 참고해서 질문을 만들어주세요: {', '.join(keywords)}." if keywords else ""
+
+    if interest_area and interest_area != "없음":
+        interest_prompt = f"""학생은 "{interest_area}"에 관심이 많습니다. 이 흥미 분야와 수업 주제 "{topic}"를 연결한 질문을 만들어주세요.
+        단, 교육과정과 너무 동떨어지지 않도록 주의해주세요.
+        만약 "{interest_area}"와 직접적인 연결이 어렵다면, 교육과정 범위 안에서 적절히 재구성된 질문을 제시하고,
+        질문 앞에 다음 중 하나의 문구를 붙여주세요:
+        - "※ '{interest_area}'와 직접 연결하기 어려워, 교육과정에 맞춘 질문을 대신 제공합니다."
+        - "'{interest_area}'에 대한 흥미를 반영한 질문입니다."
+        """
+    else:
+        interest_prompt = ""
 
     prompt = f"""
     다음은 과학 수업 주제입니다: "{topic}"
     {keyword_hint}
+    {interest_prompt}
     이 주제와 관련된 사고 확장 질문 1개를 생성해주세요.
     너무 노골적으로 답을 말하지 마세요.
     """
@@ -65,6 +77,7 @@ def generate_question_and_intent(topic, grade_level):
         temperature=0.7,
     )
     return response.choices[0].message.content.strip()
+
 
 # --- 학생 질문에 대한 AI 응답 생성 ---
 def answer_student_question(question, topic):
@@ -159,6 +172,7 @@ def create_pdf(level, subject, topic, question, student_answer, ai_feedback, stu
     pdf.cell(0, 8, f"학년: {level}", ln=True)
     pdf.cell(0, 8, f"과목명: {subject}", ln=True)
     pdf.cell(0, 8, f"수업 주제: {topic}", ln=True)
+    pdf.cell(0, 8, f"관심 분야: {interest_area}", ln=True)
     pdf.ln(10)
 
     # 수업 질문
@@ -214,6 +228,10 @@ else:
     subject = level + " 과학"
 
 # 2. 수업 주제 입력
+# 2-1. 학생 관심 분야 선택
+st.header("2️⃣-2 관심 있는 분야 선택")
+interest_area = st.selectbox("관심 분야를 선택하세요", ["없음", "예술", "음악", "체육", "기술", "자연과 환경", "인문사회", "기타"])
+
 st.header("2️⃣ 수업 주제 입력")
 topic = st.text_input("학습 주제를 입력하세요", placeholder="예: 전기 회로, 세포 호흡 등")
 
@@ -262,6 +280,7 @@ else:
 # 3. 질문 생성 조건 확인 및 버튼 노출 (검증 통과 시에만)
 if st.session_state.get("verified", False):
     if st.button("🤖 AI 질문 생성"):
+    question_text = generate_question_and_intent(topic, level, interest_area)
         with st.spinner("AI 질문 생성 중입니다..."):
             try:
                 question_text = generate_question_and_intent(topic, level)
