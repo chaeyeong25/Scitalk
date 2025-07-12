@@ -6,7 +6,6 @@ from pathlib import Path
 
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-
 # --- 학년 및 과목별 주요 개념 ---
 curriculum_keywords = {
     "중1 과학": ["물질의 상태 변화", "기체의 성질", "소화와 순환", "지권의 변화", "빛과 파동"],
@@ -150,7 +149,7 @@ def verify_topic_with_ai(topic, level, subject):
     )
     return response.choices[0].message.content.strip()
 
-# --- PDF 생성 함수 ---
+# --- PDF 생성 ---
 # PDF 생성 함수 수정
 def create_pdf(level, subject, topic, question, student_answer, ai_feedback, student_questions_and_answers):
     pdf = FPDF()
