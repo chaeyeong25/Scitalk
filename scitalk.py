@@ -6,7 +6,7 @@ from pathlib import Path
 
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-# --- 학년 및 과목별 주요 개념 ---
+# 학년 및 과목별 주요 개념 모음
 curriculum_keywords = {
     "중1 과학": ["물질의 상태 변화", "기체의 성질", "소화와 순환", "지권의 변화", "빛과 파동"],
     "중2 과학": ["화학 변화", "전기 회로", "운동과 에너지", "호흡과 배설", "기후와 날씨"],
@@ -32,7 +32,7 @@ curriculum_keywords = {
     "융합과학탐구": ["융합적 문제 해결", "과학기술과 사회", "과학적 의사결정"]
 }
 
-# --- 상태 저장 초기화 ---
+# 세션에 저장할 데이터들 초기화(답변, 질문 등)
 if "student_questions" not in st.session_state:
     st.session_state.student_questions = []
 if "generated_question" not in st.session_state:
@@ -42,7 +42,7 @@ if "ai_answers" not in st.session_state:
 if "ai_feedback" not in st.session_state:
     st.session_state.ai_feedback = ""
 
-# --- AI 질문 생성 ---
+# AI 질문 생성 요청
 def generate_question_and_intent(topic, grade_level, interest_area):
     keywords = curriculum_keywords.get(grade_level + " 과학" if grade_level.startswith("중") else grade_level, [])
     keyword_hint = f"다음 개념 중 하나 이상을 참고해서 질문을 만들어주세요: {', '.join(keywords)}." if keywords else ""
@@ -78,7 +78,7 @@ def generate_question_and_intent(topic, grade_level, interest_area):
     return response.choices[0].message.content.strip()
 
 
-# --- 학생 질문에 대한 AI 응답 생성 ---
+# 학생 질문에 대한 AI 응답 요청청
 def answer_student_question(question, topic):
     if topic.lower() not in question.lower():
         return "해당 질문은 현재 학습 주제와 관련된 내용이 아닙니다. 수업 내용과 연결된 질문을 해보세요."
@@ -98,7 +98,7 @@ def answer_student_question(question, topic):
     )
     return response.choices[0].message.content.strip()
 
-# --- 학생 답변에 대한 피드백 생성 ---
+# 학생 답변에 대한 AI 피드백 생성
 def generate_ai_feedback(student_answer, topic, level):
     keywords = curriculum_keywords.get(level + " 과학" if level.startswith("중") else level, [])
     keyword_hint = f"다음 개념 중 누락된 것이 있다면 보완해주세요: {', '.join(keywords)}." if keywords else ""
@@ -124,7 +124,7 @@ def generate_ai_feedback(student_answer, topic, level):
     )
     return response.choices[0].message.content.strip()
 
-# --- AI에게 입력 주제 검증 요청 함수 ---
+# 입력 주제와 교육과정 일치 검증 AI 요청
 def verify_topic_with_ai(topic, level, subject):
     prompt = f"""
     당신은 중고등학교 과학 교육과정 전문가입니다.
@@ -149,14 +149,13 @@ def verify_topic_with_ai(topic, level, subject):
     )
     return response.choices[0].message.content.strip()
 
-# --- PDF 생성 ---
-# PDF 생성 함수 수정
+# PDF 생성
 def create_pdf(level, subject, topic, question, student_answer, ai_feedback, student_questions_and_answers):
     pdf = FPDF()
     pdf.add_page()
     pdf.set_auto_page_break(auto=True, margin=15)
 
-    # 한글 폰트 경로 설정
+    # 폰트 경로
     font_path = Path(__file__).parent
     pdf.add_font("Nanum", "", str(font_path / "NanumGothic.ttf"), uni=True)
     pdf.add_font("Nanum", "B", str(font_path / "NanumGothicBold.ttf"), uni=True)
@@ -166,7 +165,7 @@ def create_pdf(level, subject, topic, question, student_answer, ai_feedback, stu
     pdf.cell(0, 10, "SciTalk - 과학 수업 사고 확장 결과", ln=True, align="C")
     pdf.ln(10)
 
-    # 수업 정보
+    # 수업 정보 및 관심 분야
     pdf.set_font("Nanum", "", 12)
     pdf.cell(0, 8, f"학년: {level}", ln=True)
     pdf.cell(0, 8, f"과목명: {subject}", ln=True)
@@ -174,21 +173,21 @@ def create_pdf(level, subject, topic, question, student_answer, ai_feedback, stu
     pdf.cell(0, 8, f"관심 분야: {interest_area}", ln=True)
     pdf.ln(10)
 
-    # 수업 질문
+    # 수업 관련 AI 질문
     pdf.set_font("Nanum", "B", 14)
     pdf.cell(0, 8, "수업 관련 질문", ln=True)
     pdf.set_font("Nanum", "", 12)
     pdf.multi_cell(0, 8, question)
     pdf.ln(10)
 
-    # 학생 답변
+    # AI 질문에 대한 학생 답변
     pdf.set_font("Nanum", "B", 14)
     pdf.cell(0, 8, "학생 답변", ln=True)
     pdf.set_font("Nanum", "", 12)
     pdf.multi_cell(0, 8, student_answer)
     pdf.ln(10)
 
-    # AI Q&A
+    # 학생 질문과 AI 답변변
     pdf.set_font("Nanum", "B", 14)
     pdf.cell(0, 8, "학생이 했던 모든 질문과 AI 답변", ln=True)
     pdf.set_font("Nanum", "", 12)
@@ -228,7 +227,7 @@ else:
 
 # 2. 수업 주제 입력
 # 2-1. 학생 관심 분야 선택
-st.header("2️⃣-2 관심 있는 분야 선택")
+st.header("2️⃣-1 관심 있는 분야 선택")
 interest_area = st.selectbox("관심 분야를 선택하세요", ["없음", "예술", "음악", "체육", "기술", "자연과 환경", "인문사회", "기타"])
 
 st.header("2️⃣ 수업 주제 입력")
@@ -241,7 +240,7 @@ if topic and "last_topic" in st.session_state and topic != st.session_state.last
     st.session_state.verification_message = ""
 st.session_state.last_topic = topic
 
-# 상태 저장: 주제 검증 결과 저장
+# 주제 검증 결과 저장
 if "verified" not in st.session_state:
     st.session_state.verified = False
 if "verification_done" not in st.session_state:
@@ -252,7 +251,7 @@ if "verification_message" not in st.session_state:
 # 수업 주제가 모두 입력되었는지 확인
 is_input_complete = (level != "") and (subject != "") and (topic.strip() != "")
 
-# 검증 수행 (입력 완료 + 아직 검증 안함 상태일 때만)
+# 검증 수행 (입력 완료 + 아직 검증 안한 상태일 때)
 if is_input_complete and not st.session_state.verification_done:
     with st.spinner("입력 주제와 교육과정 적합성 검증 중..."):
         try:
@@ -276,7 +275,7 @@ if st.session_state.verified:
 else:
     st.warning(st.session_state.verification_message)
 
-# 3. 질문 생성 조건 확인 및 버튼 노출 (검증 통과 시에만)
+# 3. 질문 생성 조건 확인 및 버튼 노출 (검증 통과 시시)
 if st.session_state.get("verified", False):
     if st.button("🤖 AI 질문 생성"):
         with st.spinner("AI 질문 생성 중입니다..."):
