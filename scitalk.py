@@ -280,10 +280,9 @@ else:
 # 3. 질문 생성 조건 확인 및 버튼 노출 (검증 통과 시에만)
 if st.session_state.get("verified", False):
     if st.button("🤖 AI 질문 생성"):
-    question_text = generate_question_and_intent(topic, level, interest_area)
         with st.spinner("AI 질문 생성 중입니다..."):
             try:
-                question_text = generate_question_and_intent(topic, level)
+                question_text = generate_question_and_intent(topic, level, interest_area)
                 st.session_state.generated_question = question_text
             except Exception as e:
                 st.error(f"AI 생성 오류: {e}")
